@@ -1,0 +1,146 @@
+import cdfBinomial from '@stdlib/stats/base/dists/binomial/cdf';
+import pmfBinomial from '@stdlib/stats/base/dists/binomial/pmf';
+
+interface BernoulliParams {
+  alfa: number;
+  pCritico: number;
+  n: number;
+  tipoDeCola: "izquierda >=" | "derecha";
+}
+
+interface BetaParams {
+  rCritico: number;
+  pUno: number;
+  n: number;
+  tipoDeCola: "izquierda >=" | "derecha";
+}
+
+interface MuestraAdecuadaParams {
+  alfa: number;
+  beta: number;
+  p0: number;
+  p1: number;
+  valorMaximo: number;
+  tipoDeCola: "izquierda >=" | "derecha";
+}
+
+interface CondicionRechazoResult {
+  rCritico: number;
+  pEstimado: number;
+}
+
+interface BetaResult {
+  beta: number;
+  potencia: number;
+}
+
+interface MuestraAdecuadaResult {
+  n: number;
+  rCritico: number;
+}
+
+function calculateAlfa(r: number, n: number, p: number): number {
+  return 1 - cdfBinomial(r, n, p);
+}
+
+function calculateBeta(r: number, n: number, p: number): number {
+  return cdfBinomial(r, n, p);
+}
+
+function calcularCondicionDeRechazoBernoulli(
+  params: BernoulliParams,
+): CondicionRechazoResult {
+  const { alfa, pCritico, n, tipoDeCola } = params;
+
+  let rCritico: number;
+  if (tipoDeCola === "izquierda >=") {
+    rCritico = calcularValorCriticoBinomial(1 - alfa, n, pCritico);
+  } else {
+    rCritico = calcularValorCriticoBinomial(alfa, n, pCritico);
+  }
+  const pEstimado = rCritico / n;
+
+  return { rCritico, pEstimado };
+}
+
+function calcularValorCriticoBinomial(
+  alfa: number,
+  n: number,
+  p: number,
+): number {
+  let acumulado = 0;
+  let valorCritico = 0;
+
+  while (acumulado < 1 - alfa) {
+    acumulado += pmfBinomial(valorCritico, n, p);
+    valorCritico++;
+  }
+  return valorCritico - 1; // Restamos 1 porque el ciclo suma un valor extra
+}
+
+function calcularBeta(params: BetaParams): BetaResult {
+  const { rCritico, pUno, n, tipoDeCola } = params;
+
+  let beta: number;
+  if (tipoDeCola === "izquierda >=") {
+    const rCriticoAjustado = rCritico - 1;
+    beta = cdfBinomial(rCriticoAjustado, n, pUno);
+  } else {
+    const rCriticoAjustado = rCritico;
+    beta = cdfBinomial(rCriticoAjustado, n, pUno);
+  }
+
+  return { beta, potencia: 1 - beta };
+}
+
+function calcularMuestraAdecuada(
+  params: MuestraAdecuadaParams,
+): MuestraAdecuadaResult | string {
+  const { alfa, beta, p0, p1, valorMaximo, tipoDeCola } = params;
+  const rows: Array<{ n: number; r: number }> = [];
+
+  for (let n = 1; n <= valorMaximo; n++) {
+    for (let r = 0; r < n; r++) {
+      rows.push({ n, r });
+    }
+  }
+
+  let bestN = -1;
+  let bestR = -1;
+  let minDifference = Infinity;
+
+  for (const { n, r } of rows) {
+    const currentAlfa = Math.abs(
+      (tipoDeCola === "izquierda >=" ? 1 : 0) - calculateAlfa(r, n, p0),
+    );
+    const currentBeta = Math.abs(
+      (tipoDeCola === "izquierda >=" ? 1 : 0) - calculateBeta(r, n, p1),
+    );
+
+    if (currentAlfa <= alfa && currentBeta <= beta) {
+      const difference = Math.abs(currentAlfa - alfa) +
+        Math.abs(currentBeta - beta);
+      if (difference < minDifference) {
+        minDifference = difference;
+        bestN = n;
+        bestR = r;
+      }
+    }
+  }
+
+  if (bestN === -1 || bestR === -1) {
+    return "No existe un valor, incrementar el n.";
+  } else {
+    return {
+      n: bestN,
+      rCritico: tipoDeCola === "izquierda >=" ? bestR : bestR + 1,
+    };
+  }
+}
+
+export {
+  calcularBeta,
+  calcularCondicionDeRechazoBernoulli,
+  calcularMuestraAdecuada,
+};
+

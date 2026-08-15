@@ -1,0 +1,201 @@
+import jStat from "https://cdn.skypack.dev/jstat";
+
+interface DatosEstimarBernoulli {
+  muestra: number;
+  exitos: number;
+  riesgo: number;
+}
+
+function estimarBernoulli(datos: DatosEstimarBernoulli) {
+  const { muestra, exitos, riesgo } = datos;
+
+  // Grados de libertad para A y B según las fórmulas en la imagen
+  const nu_n_A = 2 * muestra - 2 * exitos + 2;
+  const nu_d_A = 2 * exitos;
+  const nu_n_B = 2 * exitos + 2;
+  const nu_d_B = 2 * muestra - 2 * exitos;
+
+  // Cálculo de los valores críticos de la distribución F
+  const F_alpha_A = jStat.centralF.inv(1 - riesgo / 2, nu_n_A, nu_d_A);
+  const F_alpha_B = jStat.centralF.inv(1 - riesgo / 2, nu_n_B, nu_d_B);
+
+  // Cálculo de A y B según las fórmulas dadas
+  let A;
+  if (exitos === 0) {
+    A = 0;
+  } else {
+    A = 1 / (1 + ((muestra - exitos + 1) / exitos) * F_alpha_A);
+  }
+  const B = 1 / (1 + ((muestra - exitos) / ((exitos + 1) * F_alpha_B)));
+
+  // Retornar los resultados
+  return {
+    limiteInferior: A,
+    limiteSuperior: B,
+    errorMuestral: (B - A) / 2,
+  };
+}
+
+function estimarBernoulliCompleto(datos: DatosEstimarBernoulli) {
+  const { muestra, exitos, riesgo } = datos;
+
+  // Grados de libertad para A y B según las fórmulas en la imagen
+  const nu_n_A = 2 * muestra - 2 * exitos + 2;
+  const nu_d_A = 2 * exitos;
+  const nu_n_B = 2 * exitos + 2;
+  const nu_d_B = 2 * muestra - 2 * exitos;
+
+  // Cálculo de los valores críticos de la distribución F
+  const F_alpha_A = jStat.centralF.inv(1 - riesgo, nu_n_A, nu_d_A);
+  const F_alpha_B = jStat.centralF.inv(1 - riesgo, nu_n_B, nu_d_B);
+
+  // Cálculo de A y B según las fórmulas dadas
+  let A;
+  if (exitos === 0) {
+    A = 0;
+  } else {
+    A = 1 / (1 + ((muestra - exitos + 1) / exitos) * F_alpha_A);
+  }
+  const B = 1 / (1 + ((muestra - exitos) / ((exitos + 1) * F_alpha_B)));
+
+  // Retornar los resultados
+  return {
+    fraccionMinima: A,
+    fraccionMaxima: B,
+  };
+}
+
+interface DatosCalcularMuestra {
+  riesgo: number;
+  errorBuscado?: number;
+  tasaOcurrencias: number;
+  muestraOriginal?: number;
+  R?: number;
+  iteracionesMaximas?: number;
+}
+
+function calcularMuestra(datos: DatosCalcularMuestra) {
+  const {
+    riesgo,
+    errorBuscado,
+    tasaOcurrencias,
+    muestraOriginal,
+    R,
+    iteracionesMaximas,
+  } = datos;
+  let n;
+
+  if (R !== undefined && muestraOriginal !== undefined) {
+    // Caso donde se proporciona R y muestraOriginal
+    if (
+      muestraOriginal * tasaOcurrencias > 10 &&
+      muestraOriginal * (1 - tasaOcurrencias) > 10
+    ) {
+      // Aproximación normal
+      const numerador: number = (R + 1) *
+        jStat.normal.inv(1 - riesgo / 2, 0, 1);
+      const denominador: number = R - 1;
+      const potencia: number = Math.pow(numerador / denominador, 2);
+      n = potencia * ((1 / tasaOcurrencias) - 1) + 1;
+    } else {
+      if (tasaOcurrencias >= 0.5) {
+        console.log("Aqui");
+        // Usar la fórmula proporcionada para p >= 0.5
+        let nIter: number = muestraOriginal;
+        const iter_max = iteracionesMaximas ?? 30000; // Máximo número de iteraciones
+        let iter_count = 0;
+        let mejorR = Infinity;
+        let mejorN = nIter;
+
+        while (iter_count < iter_max) {
+          const nu_A = 2 * nIter * (1 - tasaOcurrencias); // Grados de libertad para el límite A
+          const nu_B = 2 * nIter * (1 - tasaOcurrencias) + 2; // Grados de libertad para el límite B
+
+          // Cálculo de chi-cuadrado para los límites A y B
+          const chi_A = jStat.chisquare.inv(riesgo / 2, nu_A);
+          const chi_B = jStat.chisquare.inv(1 - riesgo / 2, nu_B);
+
+          // Relación R entre los límites en función de n
+          const R_actual = (2 * nIter - chi_A) / (2 * nIter - chi_B);
+
+          // Actualizar el mejor R encontrado si es menor que el anterior
+          if (Math.abs(R_actual - R) < Math.abs(mejorR - R)) {
+            mejorR = R_actual;
+            mejorN = nIter;
+          }
+
+          // Ajuste de nIter para aumentar el tamaño de muestra hasta alcanzar la relación deseada
+          nIter += 1; // Incrementar nIter en pasos pequeños para evitar oscilaciones
+
+          iter_count += 1;
+        }
+
+        // Tamaño de muestra aproximado
+        console.log(mejorR);
+
+        n = mejorN;
+      } else {
+        // Tanteo para encontrar el valor de r que satisfaga la relación A/B = R
+        let r = muestraOriginal * tasaOcurrencias; // Estimación inicial de r
+        const precision = 1e-6; // Precisión deseada para el tanteo
+        const iter_max = 1000; // Máximo número de iteraciones
+        let iter_count = 0;
+
+        while (iter_count < iter_max) {
+          const nu_A = 2 * r; // Grados de libertad para el límite A
+          const nu_B = 2 * (r + 1); // Grados de libertad para el límite B
+
+          // Cálculo de chi-cuadrado para los límites A y B
+          const chi_A = jStat.chisquare.inv(1 - riesgo / 2, nu_A);
+          const chi_B = jStat.chisquare.inv(1 - riesgo / 2, nu_B);
+
+          // Relación R entre los límites
+          const R_actual = chi_A / chi_B;
+
+          // Si la relación R está lo suficientemente cerca de la deseada, terminamos el tanteo
+          if (Math.abs(R_actual - R) < precision) {
+            break;
+          }
+
+          // Ajuste de r en función de si R es mayor o menor que el R deseado
+          if (R_actual < R) {
+            r += 1; // Incrementar r
+          } else {
+            r -= 1; // Disminuir r
+          }
+
+          iter_count += 1;
+        }
+
+        // Tamaño de muestra aproximado
+        n = r / tasaOcurrencias;
+      }
+    }
+  } else if (R === undefined && errorBuscado !== undefined) {
+    // Caso donde no se proporciona R, usamos la aproximación normal con relación R
+
+    n = Math.pow(jStat.normal.inv(1 - riesgo / 2, 0, 1) / errorBuscado, 2) *
+        (tasaOcurrencias * (1 - tasaOcurrencias)) +
+      1;
+  } else {
+    throw new Error(
+      "Datos insuficientes: proporcione errorBuscado y muestraOriginal, o R.",
+    );
+  }
+
+  return Math.ceil(n);
+}
+
+export { calcularMuestra, estimarBernoulli, estimarBernoulliCompleto };
+
+if (import.meta.main) {
+  console.log(
+    calcularMuestra({
+      riesgo: 0.05,
+      tasaOcurrencias: 0.83333,
+      R: 1.01182,
+      muestraOriginal: 30,
+      iteracionesMaximas: 30000,
+    }),
+  );
+}

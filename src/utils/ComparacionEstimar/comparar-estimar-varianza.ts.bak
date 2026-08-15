@@ -1,0 +1,100 @@
+import jStat from 'https://cdn.skypack.dev/jstat';
+
+interface CalcularLimitesInput {
+    muestra1: number;
+    muestra2: number;
+    varianza1: number; // Puede ser varianza o desviación estándar según esVarianza
+    varianza2: number;
+    alfa: number;
+    esVarianza: boolean;
+}
+
+interface CalcularLimitesOutput {
+    limiteInferior: number;
+    limiteSuperior: number;
+    relacionR: number;
+}
+
+function calcularLimites(input: CalcularLimitesInput): CalcularLimitesOutput {
+    const { muestra1, muestra2, varianza1, varianza2, alfa, esVarianza } = input;
+    const libertadNumerador = muestra1 - 1;
+    const libertadDenominador = muestra2 - 1;
+
+    let jota: number;
+    if (esVarianza) {
+        jota = varianza1 / varianza2;
+    } else {
+        jota = (varianza1 ** 2) / (varianza2 ** 2);
+    }
+
+    const fValueLower = jStat.centralF.inv(1 - alfa / 2, libertadNumerador, libertadDenominador);
+    const fValueUpper = jStat.centralF.inv(alfa / 2, libertadNumerador, libertadDenominador);
+
+    let limiteInferior = jota / fValueLower;
+    let limiteSuperior = jota / fValueUpper;
+
+    if (!esVarianza) {
+        limiteInferior = Math.sqrt(limiteInferior);
+        limiteSuperior = Math.sqrt(limiteSuperior);
+    }
+
+    const relacionR = parseFloat((limiteSuperior / limiteInferior).toFixed(8));
+
+    return {
+        limiteInferior: parseFloat(limiteInferior.toFixed(8)),
+        limiteSuperior: parseFloat(limiteSuperior.toFixed(8)),
+        relacionR,
+    };
+}
+
+interface CalcularMuestraRequeridaInput {
+    relacionR: number; // R para varianza, R' para desviación estándar
+    alfa: number;
+    esVarianza: boolean;
+}
+
+interface CalcularMuestraRequeridaOutput {
+    v: number;
+    n: number;
+}
+
+function calcularMuestraRequerida(input: CalcularMuestraRequeridaInput): CalcularMuestraRequeridaOutput {
+    let { relacionR, alfa, esVarianza } = input;
+    let v = 1;
+
+    if (!esVarianza) {
+        relacionR = relacionR ** 2; // Si es desviación estándar, elevamos al cuadrado R'
+    }
+
+    while (true) {
+        const tValue = jStat.studentt.inv(1 - alfa / 2, v);
+        const sqrtRelacionR = Math.sqrt(relacionR);
+
+        const numerator = 4 * tValue ** 2 * sqrtRelacionR;
+        const denominator = (sqrtRelacionR - 1) ** 2;
+
+        const vNuevo = numerator / denominator;
+        const vRedondeado = Math.ceil(vNuevo);
+
+        if (vRedondeado === v) {
+            break;
+        }
+
+        v = vRedondeado;
+    }
+
+    const n = v + 1;
+
+    return { v, n };
+}
+
+
+export {calcularLimites,calcularMuestraRequerida}
+
+
+if (import.meta.main) {
+  console.log(calcularLimites({muestra1:13,muestra2:21,varianza1:0.06,varianza2:0.084,alfa:0.1,esVarianza:false}));
+    console.log(calcularMuestraRequerida({relacionR:1.2035,alfa:0.1,esVarianza:false}));
+    console.log(calcularLimites({muestra1:50,muestra2:50,varianza1:18,varianza2:12,alfa:0.1,esVarianza:false}));
+    console.log(calcularMuestraRequerida({relacionR:1.5,alfa:0.1,esVarianza:false}));
+}

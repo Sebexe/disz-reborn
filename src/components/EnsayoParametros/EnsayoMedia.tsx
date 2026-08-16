@@ -22,7 +22,7 @@ export default function EnsayoMedia() {
   const [sigma, setSigma] = useState("");
   const [alpha, setAlpha] = useState("");
   const [muestra, setMuestra] = useState("");
-  const [tipoDeCola, setTipoDeCola] = useState<"izquierda >=" | "derecha" | "doble">("izquierda >=");
+  const [tipoDeCola, setTipoDeCola] = useState<"izquierda >=" | "derecha <=" | "doble">("izquierda >=");
   const [mediaReal, setMediaReal] = useState("");
   const [valorRechazo, setValorRechazo] = useState("");
   const [valorCriticoSuperior, setValorCriticoSuperior] = useState("");
@@ -32,12 +32,12 @@ export default function EnsayoMedia() {
 
   const handleInputChange =
     (setter: (value: string) => void) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setter(e.target.value);
-    };
+      (e: ChangeEvent<HTMLInputElement>) => {
+        setter(e.target.value);
+      };
 
   const handleTipoDeCola = (value: string) => {
-    setTipoDeCola(value as "izquierda >=" | "derecha" | "doble");
+    setTipoDeCola(value as "izquierda >=" | "derecha <=" | "doble");
   };
 
   const handleCalcular = (e: FormEvent<HTMLFormElement>) => {
@@ -61,17 +61,17 @@ export default function EnsayoMedia() {
         muestra: parsedMuestra,
         tipoDeCola,
       });
-      if (Array.isArray(condicion)) {
+      if (Array.isArray(condicion) && (condicion.limiteSuperior)) {
         setResultado(
-          `Límite inferior: ${condicion[0].toFixed(8)}, Límite superior: ${condicion[1].toFixed(8)}`
+          `Límite inferior: ${condicion.condicionRechazo.toFixed(8)}, Límite superior: ${condicion.limiteSuperior.toFixed(8)}`
         );
       } else {
-        setResultado(`Condición de rechazo: ${condicion.toFixed(8)}`);
+        setResultado(`Condición de rechazo: ${condicion.condicionRechazo.toFixed(8)}`);
       }
     } else if (opcion === "2") {
       try {
         const errorTipo2 = calcularErrorTipo2({
-          valorCritico: parsedValorRechazo,
+          valorRechazo: parsedValorRechazo,
           sigma: parsedSigma,
           muestra: parsedMuestra,
           mediaReal: parsedMediaReal,
@@ -184,7 +184,7 @@ export default function EnsayoMedia() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="izquierda >=">Izquierda ≥</SelectItem>
-                      <SelectItem value="derecha">Derecha ≤</SelectItem>
+                      <SelectItem value="derecha <=">Derecha ≤</SelectItem>
                       <SelectItem value="doble">Doble</SelectItem>
                     </SelectContent>
                   </Select>

@@ -99,7 +99,7 @@ function calcularSizeMuestral(datos: DatosEstimarSize) {
   // Retornando el tamaño de muestra requerido redondeado hacia arriba
   return Math.ceil(muestra);
 }
-export {calcularSizeMuestral,calcularErrorMuestral,calcularLimitesConDatos};
+export {calcularSizeMuestral,calcularErrorMuestral,calcularLimitesConDatos, type DatosEstimarError,type DatosEstimarLimite,type DatosEstimarSize};
 
 
 // Ejecuta la función si el script se ejecuta directamente

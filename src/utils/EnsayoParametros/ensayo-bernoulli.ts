@@ -5,14 +5,14 @@ interface BernoulliParams {
   alfa: number;
   pCritico: number;
   n: number;
-  tipoDeCola: "izquierda >=" | "derecha";
+  tipoDeCola: "izquierda >=" | "derecha <=";
 }
 
 interface BetaParams {
   rCritico: number;
   pUno: number;
   n: number;
-  tipoDeCola: "izquierda >=" | "derecha";
+  tipoDeCola: "izquierda >=" | "derecha <=";
 }
 
 interface MuestraAdecuadaParams {
@@ -21,7 +21,7 @@ interface MuestraAdecuadaParams {
   p0: number;
   p1: number;
   valorMaximo: number;
-  tipoDeCola: "izquierda >=" | "derecha";
+  tipoDeCola: "izquierda >=" | "derecha <=";
 }
 
 interface CondicionRechazoResult {

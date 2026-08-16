@@ -27,22 +27,22 @@ export default function EnsayoVarianza() {
   const [valorBeta, setValorBeta] = useState("");
   const [sigmaValorCritico, setSigmaValorCritico] = useState("");
   const [esVarianza, setEsVarianza] = useState(true);
-  const [tipoCola, setTipoCola] = useState<"izquierda >=" | "derecha">("izquierda >=");
+  const [tipoCola, setTipoCola] = useState<"izquierda >=" | "derecha <=">("izquierda >=");
   const [resultado, setResultado] = useState("");
   const [valorRechazo, setValorRechazo] = useState("");
 
   const handleInputChange =
     (setter: (value: string) => void) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setter(e.target.value);
-    };
+      (e: ChangeEvent<HTMLInputElement>) => {
+        setter(e.target.value);
+      };
 
   const handleCheckboxChange = (checked: boolean) => {
     setEsVarianza(checked);
   };
 
   const handleTipoCola = (value: string) => {
-    setTipoCola(value as "izquierda >=" | "derecha");
+    setTipoCola(value as "izquierda >=" | "derecha <=");
   };
 
   const handleCalcular = (e: FormEvent<HTMLFormElement>) => {
@@ -177,7 +177,7 @@ export default function EnsayoVarianza() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="izquierda >=">Izquierda ≥</SelectItem>
-                  <SelectItem value="derecha">Derecha ≤</SelectItem>
+                  <SelectItem value="derecha <=">Derecha ≤</SelectItem>
                 </SelectContent>
               </Select>
             </div>

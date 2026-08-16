@@ -21,7 +21,7 @@ export default function EnsayoBernoulli() {
   const [alfa, setAlfa] = useState("");
   const [pCritico, setPCritico] = useState("");
   const [n, setN] = useState("");
-  const [tipoDeCola, setTipoDeCola] = useState<"izquierda >=" | "derecha">("izquierda >=");
+  const [tipoDeCola, setTipoDeCola] = useState<"izquierda >=" | "derecha <=">("izquierda >=");
   const [rCritico, setRCritico] = useState("");
   const [pUno, setPUno] = useState("");
   const [beta, setBeta] = useState("");
@@ -32,12 +32,12 @@ export default function EnsayoBernoulli() {
 
   const handleInputChange =
     (setter: (value: string) => void) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      setter(e.target.value);
-    };
+      (e: ChangeEvent<HTMLInputElement>) => {
+        setter(e.target.value);
+      };
 
   const handleTipoDeCola = (value: string) => {
-    setTipoDeCola(value as "izquierda >=" | "derecha");
+    setTipoDeCola(value as "izquierda >=" | "derecha <=");
   };
 
   const handleCalcular = (e: FormEvent<HTMLFormElement>) => {
@@ -140,7 +140,7 @@ export default function EnsayoBernoulli() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="izquierda >=">Izquierda ≥</SelectItem>
-                      <SelectItem value="derecha">Derecha ≤</SelectItem>
+                      <SelectItem value="derecha <=">Derecha ≤</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -9,9 +9,26 @@ interface BernoulliParams {
 }
 
 interface BetaParams {
-  rCritico: number;
+
+  /** 
+   * Valor de rechazo utilizado en el ensayo de hipotesis
+   */
+  rRechazo: number;
+
+  /** 
+   * Valor para el cual se desea comprobar el beta.
+   * ejemplo: si se desea comprobar el beta para p=0.12, entonces pUno=0.12: 
+   */
   pUno: number;
+
+  /** 
+   * Número de ensayos
+   */
   n: number;
+
+  /** 
+   * Tipo de cola del test.
+   */
   tipoDeCola: "izquierda >=" | "derecha <=";
 }
 
@@ -79,17 +96,16 @@ function calcularValorCriticoBinomial(
 }
 
 function calcularBeta(params: BetaParams): BetaResult {
-  const { rCritico, pUno, n, tipoDeCola } = params;
+  const { rRechazo: rCritico, pUno, n, tipoDeCola } = params;
 
-  let beta: number;
   if (tipoDeCola === "izquierda >=") {
+    // Región de rechazo: X <= rCritico - 1, por lo que este valor es P(rechazar) = potencia.
     const rCriticoAjustado = rCritico - 1;
-    beta = cdfBinomial(rCriticoAjustado, n, pUno);
-  } else {
-    const rCriticoAjustado = rCritico;
-    beta = cdfBinomial(rCriticoAjustado, n, pUno);
+    const potencia = cdfBinomial(rCriticoAjustado, n, pUno);
+    return { beta: 1 - potencia, potencia };
   }
 
+  const beta = cdfBinomial(rCritico, n, pUno);
   return { beta, potencia: 1 - beta };
 }
 

@@ -100,8 +100,7 @@ function calcularMuestra(datos: DatosCalcularMuestra) {
       const potencia: number = Math.pow(numerador / denominador, 2);
       n = potencia * ((1 / tasaOcurrencias) - 1) + 1;
     } else {
-      if (tasaOcurrencias >= 0.5) {
-        console.log("Aqui");
+      if (tasaOcurrencias >= 0.5 ) {
         // Usar la fórmula proporcionada para p >= 0.5
         let nIter: number = muestraOriginal;
         const iter_max = iteracionesMaximas ?? 30000; // Máximo número de iteraciones
@@ -133,7 +132,6 @@ function calcularMuestra(datos: DatosCalcularMuestra) {
         }
 
         // Tamaño de muestra aproximado
-        console.log(mejorR);
 
         n = mejorN;
       } else {

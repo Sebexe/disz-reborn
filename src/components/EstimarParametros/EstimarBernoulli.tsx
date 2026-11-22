@@ -29,8 +29,7 @@ export default function EstimarBernoulli() {
   const [resultado, setResultado] = useState("");
 
   const handleInputChange =
-    (setter: (value: string) => void) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
+    (setter: (value: string) => void) => (e: ChangeEvent<HTMLInputElement>) => {
       setter(e.target.value);
     };
 
@@ -54,10 +53,10 @@ export default function EstimarBernoulli() {
       });
       setResultado(
         `Límite inferior: ${limites.limiteInferior.toFixed(
-          8
+          8,
         )}, Límite superior: ${limites.limiteSuperior.toFixed(
-          8
-        )}, Error muestral: ${limites.errorMuestral.toFixed(8)}`
+          8,
+        )}, Error muestral: ${limites.errorMuestral.toFixed(8)}`,
       );
     } else if (opcion === "2") {
       const limites = estimarBernoulliCompleto({
@@ -67,13 +66,16 @@ export default function EstimarBernoulli() {
       });
       setResultado(
         `Fracción mínima: ${limites.fraccionMinima.toFixed(
-          8
-        )}, Fracción máxima: ${limites.fraccionMaxima.toFixed(8)}`
+          8,
+        )}, Fracción máxima: ${limites.fraccionMaxima.toFixed(8)}`,
       );
     } else if (opcion === "3") {
+      console.log("Calculando muestra requerida...");
       const muestraCalculada = calcularMuestra({
         riesgo: parsedRiesgo,
-        errorBuscado: isNaN(parsedErrorBuscado) ? undefined : parsedErrorBuscado,
+        errorBuscado: isNaN(parsedErrorBuscado)
+          ? undefined
+          : parsedErrorBuscado,
         tasaOcurrencias: parsedTasaOcurrencias,
         muestraOriginal: parsedMuestraOriginal,
         R: isNaN(parsedR) ? undefined : parsedR,
@@ -103,7 +105,9 @@ export default function EstimarBernoulli() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">Calcular límites Bernoulli</SelectItem>
-                  <SelectItem value="2">Calcular fraccion maxima y minima</SelectItem>
+                  <SelectItem value="2">
+                    Calcular fraccion maxima y minima
+                  </SelectItem>
                   <SelectItem value="3">Calcular muestra requerida</SelectItem>
                 </SelectContent>
               </Select>

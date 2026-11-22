@@ -21,7 +21,9 @@ export default function EnsayoBernoulli() {
   const [alfa, setAlfa] = useState("");
   const [pCritico, setPCritico] = useState("");
   const [n, setN] = useState("");
-  const [tipoDeCola, setTipoDeCola] = useState<"izquierda >=" | "derecha <=">("izquierda >=");
+  const [tipoDeCola, setTipoDeCola] = useState<"izquierda >=" | "derecha <=">(
+    "izquierda >=",
+  );
   const [rCritico, setRCritico] = useState("");
   const [pUno, setPUno] = useState("");
   const [beta, setBeta] = useState("");
@@ -31,10 +33,9 @@ export default function EnsayoBernoulli() {
   const [resultado, setResultado] = useState("");
 
   const handleInputChange =
-    (setter: (value: string) => void) =>
-      (e: ChangeEvent<HTMLInputElement>) => {
-        setter(e.target.value);
-      };
+    (setter: (value: string) => void) => (e: ChangeEvent<HTMLInputElement>) => {
+      setter(e.target.value);
+    };
 
   const handleTipoDeCola = (value: string) => {
     setTipoDeCola(value as "izquierda >=" | "derecha <=");
@@ -61,19 +62,19 @@ export default function EnsayoBernoulli() {
         tipoDeCola,
       });
       setResultado(
-        `R Crítico: ${condicion.rCritico}, P Estimado: ${condicion.pEstimado.toFixed(3)}`
+        `R Crítico: ${condicion.rCritico}, P Estimado: ${condicion.pEstimado.toFixed(3)}`,
       );
     } else if (opcion === "2") {
       const betaResult = calcularBeta({
-        rCritico: parsedRCritico,
+        rRechazo: parsedRCritico,
         pUno: parsedPUno,
         n: parsedN,
         tipoDeCola,
       });
       setResultado(
         `Beta VERIFICAR QUE PUEDE SER LA OTRA COLA O ESTAR INVERTIDOS: ${betaResult.beta.toFixed(
-          5
-        )}, Potencia: ${betaResult.potencia.toFixed(5)}`
+          5,
+        )}, Potencia: ${betaResult.potencia.toFixed(5)}`,
       );
     } else if (opcion === "3") {
       const muestraAdecuada = calcularMuestraAdecuada({
@@ -88,7 +89,7 @@ export default function EnsayoBernoulli() {
         setResultado(muestraAdecuada);
       } else {
         setResultado(
-          `Tamaño de muestra requerido: ${muestraAdecuada.n}, R Crítico: ${muestraAdecuada.rCritico}`
+          `Tamaño de muestra requerido: ${muestraAdecuada.n}, R Crítico: ${muestraAdecuada.rCritico}`,
         );
       }
     } else {
@@ -111,7 +112,9 @@ export default function EnsayoBernoulli() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Calcular condición de rechazo Bernoulli</SelectItem>
+                  <SelectItem value="1">
+                    Calcular condición de rechazo Bernoulli
+                  </SelectItem>
                   <SelectItem value="2">Calcular Beta</SelectItem>
                   <SelectItem value="3">Calcular muestra adecuada</SelectItem>
                 </SelectContent>
